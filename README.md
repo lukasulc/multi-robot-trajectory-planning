@@ -37,8 +37,10 @@ In Matlab: make
 ### Discrete Planning
 
 ````
+(after running the setup, run the following from root of the project)
 ./build/libMultiRobotPlanning/ecbs -i examples/ground/test_2_agents.yaml -o examples/ground/output/discreteSchedule.yaml -w 1.1
 python3 libMultiRobotPlanning/example/visualize.py examples/ground/test_2_agents.yaml examples/ground/output/discreteSchedule.yaml
+(no examples/ground/output/discreteSchedule.yaml found error -> create examples/ground/output directory and run both commands again)
 ````
 
 ### Map Conversion
