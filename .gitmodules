@@ -3,4 +3,4 @@
 	url = https://github.com/whoenig/smoothener.git
 [submodule "libMultiRobotPlanning"]
 	path = libMultiRobotPlanning
-	url = https://github.com/whoenig/libMultiRobotPlanning.git
+	url = https://github.com/lukasulc/libMultiRobotPlanning.git
