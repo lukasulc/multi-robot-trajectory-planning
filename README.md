@@ -12,6 +12,20 @@ The continuous planner is identical to the one used in the IROS paper, while the
 
 Currently, this version only supports the 2D case, using (E)CBS as discrete planner.
 
+# Installation (from a clean Ubuntu 22.04. build)
+
+```
+git clone --recurse-submodules -j8 https://github.com/lukasulc/multi-robot-trajectory-planning
+sudo apt-get update
+sudo apt-get install libboost-all-dev
+// sudo apt-get install -y build-essential # was not necessary 
+sudo apt-get install libyaml-cpp-dev  # Standard package on Ubuntu
+sudo apt-get install pkg-config  # Helps CMake locate dependencies
+sudo apt-get install doxygen doxygen-gui graphviz  # Installs Doxygen and diagram tools
+sudo apt-get install liboctomap-dev  # Standard Ubuntu package 
+sudo apt-get install python3-matplotlib
+```
+
 ## Setup
 
 
