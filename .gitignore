@@ -1,2 +1,3 @@
 /build
 /examples/ground/output/*
+*__pycache__
