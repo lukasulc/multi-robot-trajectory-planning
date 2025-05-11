@@ -50,11 +50,23 @@ In Matlab: make
 
 ### Discrete Planning
 
+#### Ex. 1
+
+After running the setup, run the following from root of the project:
 ````
-(after running the setup, run the following from root of the project)
 ./build/libMultiRobotPlanning/ecbs -i examples/ground/test_2_agents.yaml -o examples/ground/output/discreteSchedule.yaml -w 1.1
+````
+````
 python3 libMultiRobotPlanning/example/visualize.py examples/ground/test_2_agents.yaml examples/ground/output/discreteSchedule.yaml
-(no examples/ground/output/discreteSchedule.yaml found error -> create examples/ground/output directory and run both commands again)
+````
+If you get: "no examples/ground/output/discreteSchedule.yaml found error" -> create examples/ground/output directory and run both commands again
+
+#### Ex. 2
+````
+./build/libMultiRobotPlanning/ecbs -i examples/ground/multi/test_Berlin_1_256_Berlin_1_256-random-1_10_agents.yaml -o examples/ground/multi/output/discreteSchedule_test_Berlin_1_256_Berlin_1_256-random-1_10_agents.yaml -w 1.1
+````
+````
+python3 libMultiRobotPlanning/example/visualize.py examples/ground/multi/test_Berlin_1_256_Berlin_1_256-random-1_10_agents.yaml examples/ground/multi/output/discreteSchedule_test_Berlin_1_256_Berlin_1_256-random-1_10_agents.yaml
 ````
 
 ### Map Conversion
