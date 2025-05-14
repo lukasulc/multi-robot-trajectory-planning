@@ -69,6 +69,13 @@ If you get: "no examples/ground/output/discreteSchedule.yaml found error" -> cre
 python3 libMultiRobotPlanning/example/visualize.py examples/ground/multi/test_Berlin_1_256_Berlin_1_256-random-1_10_agents.yaml examples/ground/multi/output/discreteSchedule_test_Berlin_1_256_Berlin_1_256-random-1_10_agents.yaml
 ````
 
+#### Ex. 3
+````
+./build/libMultiRobotPlanning/ecbs -i examples/ground/warehouse-10-20-10-2-1/random-1_100_agents.yaml -o examples/ground/warehouse-10-20-10-2-1/output/random-1_100_agents.yaml -w 1.1
+````
+````
+python3 libMultiRobotPlanning/example/visualize.py examples/ground/warehouse-10-20-10-2-1/random-1_100_agents.yaml examples/ground/warehouse-10-20-10-2-1/output/random-1_100_agents.yaml --video examples/ground/warehouse-10-20-10-2-1/100_agents.mp4
+````
 ### Map Conversion
 
 ```
