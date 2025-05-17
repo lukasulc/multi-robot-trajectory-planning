@@ -76,6 +76,16 @@ python3 libMultiRobotPlanning/example/visualize.py examples/ground/multi/test_Be
 ````
 python3 libMultiRobotPlanning/example/visualize.py examples/ground/warehouse-10-20-10-2-1/random-1_100_agents.yaml examples/ground/warehouse-10-20-10-2-1/output/random-1_100_agents.yaml --video examples/ground/warehouse-10-20-10-2-1/100_agents.mp4
 ````
+#### Ex. 4 (longer time but more benchmark files)
+````
+python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/warehouse-20-40-10-2-1.map --scen_dir ../mapf-scen-random/scen-random/
+````
+````
+python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/warehouse-20-40-10-2-1.map --scen_dir ../mapf-scen-even/scen-even/
+````
+````
+python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/warehouse-20-40-10-2-1 --n 10
+````
 ### Map Conversion
 
 ```
