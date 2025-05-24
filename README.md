@@ -86,6 +86,14 @@ python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map
 ````
 python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/warehouse-20-40-10-2-1 --n 10
 ````
+
+### Aggregate & Plot data
+
+#### Ex. 1
+````
+python3 tools/plot_metric_vs_agent.py ./examples/ground/warehouse-10-20-10-2-1/ --metric cost makespan
+````
+
 ### Map Conversion
 
 ```
