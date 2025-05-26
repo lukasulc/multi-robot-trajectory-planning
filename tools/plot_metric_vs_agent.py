@@ -29,7 +29,7 @@ def read_first_n_lines(file_path: Path, n: int = 6) -> str:
         lines = [next(f) for _ in range(n)]
     return "".join(lines)
 
-def load_metrics(dir_path: Path, metrics: List[str]) -> Dict[str, DefaultDict[str, DefaultDict[int, List[float]]]]:
+def load_metrics(dir_path: Path, metrics: List[str], subdir_path: str) -> Dict[str, DefaultDict[str, DefaultDict[int, List[float]]]]:
     # {scenario_type: {agent_count: [metric_values]}}
     data: Dict[str, DefaultDict[str, DefaultDict[int, List[float]]]] = {
         metric: defaultdict(lambda: defaultdict(list)) for metric in metrics
@@ -40,7 +40,11 @@ def load_metrics(dir_path: Path, metrics: List[str]) -> Dict[str, DefaultDict[st
             continue
         print(f"Reading directory: {scenario_dir.name}")
         scenario_type = extract_scenario_type(scenario_dir.name)
-        for sched_file in scenario_dir.glob("schedules/schedule_inputs_*_agents.yaml"):
+        subdir = scenario_dir / subdir_path
+        if not subdir.exists():
+            print(f"Subdirectory {subdir} does not exist, skipping.")
+            continue
+        for sched_file in subdir.glob("*_agents.yaml"):
             agent_count = extract_agent_count(sched_file.name)
             if agent_count is None:
                 continue
@@ -56,11 +60,12 @@ def load_metrics(dir_path: Path, metrics: List[str]) -> Dict[str, DefaultDict[st
 
 def main(args: argparse.Namespace) -> None:
     results_dir: Path = Path(args.results_dir)
+    output_dir: Path = Path(args.output_dir)
     metrics: List[str] = args.metrics
-    data = load_metrics(results_dir, ALL_METRICS)
+    data = load_metrics(results_dir, ALL_METRICS, args.subdir_path)
 
     avg_dict, meta_dict = compute_averages(data, ALL_METRICS)
-    save_global_averages_by_scenario(avg_dict, meta_dict, results_dir)
+    save_global_averages_by_scenario(avg_dict, meta_dict, output_dir)
 
     n_metrics = len(metrics)
     fig, axes = plt.subplots(1, n_metrics, figsize=(8 * n_metrics, 6), squeeze=False)
@@ -81,7 +86,7 @@ def main(args: argparse.Namespace) -> None:
 
     plt.tight_layout()
     if args.save_results:
-        plot_path = results_dir / f"{'_'.join(metrics)}_vs_agents.png"
+        plot_path = output_dir / f"{'_'.join(metrics)}_vs_agents.png"
         plt.savefig(plot_path)
         print(f"Plot saved to {plot_path}")
         return
@@ -90,6 +95,8 @@ def main(args: argparse.Namespace) -> None:
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot average MAPF metrics vs. number of agents for scenario types.")
     parser.add_argument("results_dir", help="Directory containing scenario subdirectories")
+    parser.add_argument("output_dir", type=str, help="Path to save the output plot (default: plot.png)")
+    parser.add_argument("--subdir_path", type=str, default="schedules", help="Path to subdirectory within results_dir (default: empty)")
     parser.add_argument("--metrics", nargs="+", default=["cost", "makespan"], help="Metrics to plot (default: cost makespan)")
     parser.add_argument("--save_results", type=bool, default=True, help="Save results to file (default: True)")
     return parser.parse_args()
