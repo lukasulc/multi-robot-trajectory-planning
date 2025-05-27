@@ -76,6 +76,7 @@ python3 libMultiRobotPlanning/example/visualize.py examples/ground/multi/test_Be
 ````
 python3 libMultiRobotPlanning/example/visualize.py examples/ground/warehouse-10-20-10-2-1/random-1_100_agents.yaml examples/ground/warehouse-10-20-10-2-1/output/random-1_100_agents.yaml --video examples/ground/warehouse-10-20-10-2-1/100_agents.mp4
 ````
+
 #### Ex. 4 (longer time but more benchmark files)
 ````
 python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/warehouse-20-40-10-2-1.map --scen_dir ../mapf-scen-random/scen-random/
@@ -87,6 +88,21 @@ python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map
 python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/warehouse-20-40-10-2-1 --n 10
 ````
 
+#### Ex. 5 (longer time but more benchmark files)
+````
+EX_PATH=warehouse-20-40-10-2-1
+````
+
+````
+python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/$EX_PATH.map --scen_dir ../mapf-scen-random/scen-random/
+````
+````
+python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/$EX_PATH.map --scen_dir ../mapf-scen-even/scen-even/
+````
+````
+python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/$EX_PATH --n 10 --alg_path ./build/libMultiRobotPlanning/cbs
+````
+
 ### Aggregate & Plot data
 
 #### Ex. 1
@@ -94,6 +110,24 @@ python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/warehouse-20-
 python3 tools/plot_metric_vs_agent.py ./examples/ground/warehouse-10-20-10-2-1/ --metric cost makespan
 ````
 
+#### Ex. 2
+````
+EX_PATH=warehouse-20-40-10-2-1
+````
+
+````
+mkdir examples/ground/$EX_PATH/analysis
+mkdir examples/ground/$EX_PATH/analysis/cbs
+mkdir examples/ground/$EX_PATH/analysis/ecbs
+````
+
+````
+python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/ground/$EX_PATH/analysis/cbs --metric cost makespan --subdir_path schedules/cbs
+````
+
+````
+python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/ground/$EX_PATH/analysis/cbs --metric cost makespan --subdir_path schedules/ecbs
+````
 ### Map Conversion
 
 ```
