@@ -3,6 +3,7 @@ import argparse
 import re
 from pathlib import Path
 import threading
+import os
 
 skip_current = False
 current_proc = None
@@ -25,7 +26,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Run ECBS on first N YAML files in each subdirectory. It will skip already existing schedules.")
     parser.add_argument("--inputs_dir", type=str, required=True, help="Directory containing subdirectories with .yaml files")
     parser.add_argument("--n", type=int, default=None, help="Number of .yaml files to process per subdirectory (default: all)")
-    parser.add_argument("--ecbs_path", type=str, default="./build/libMultiRobotPlanning/ecbs", help="Path to ECBS binary")
+    parser.add_argument("--alg_path", type=str, default="./build/libMultiRobotPlanning/ecbs", help="Path to algorithm binary")
     parser.add_argument("--weight", type=float, default=1.1, help="ECBS weight parameter")
     parser.add_argument("--timeout", type=int, default=180, help="Timeout for each ECBS call in seconds (default: 180 seconds)")
     return parser.parse_args()
@@ -42,25 +43,31 @@ def main(args):
         if not yaml_files:
             continue
         to_process = yaml_files if args.n is None else yaml_files[:args.n]
-        schedules_dir = subdir / "schedules"
+        res_dir = os.path.basename(args.alg_path)
+        if res_dir == "ecbs":
+            res_dir = f"{os.path.basename(args.alg_path)}_w_{args.weight}"
+        schedules_dir = subdir / "schedules" / res_dir
         schedules_dir.mkdir(exist_ok=True)
         for yaml_file in to_process:
             if skip_current:
                 print(f"Skipping (user request): {yaml_file}")
                 skip_current = False
                 continue
-            out_file = schedules_dir / f"schedule_{yaml_file.name}"
+            out_file = schedules_dir / f"{os.path.basename(args.alg_path)}_schedule_{yaml_file.name}"
             if out_file.exists():
                 print(f"Skipping (already exists): {out_file}")
                 continue
             print(f"Scheduling: {yaml_file} -> {out_file}")
             try:
-                current_proc = subprocess.Popen([
-                    args.ecbs_path,
+                cmd = [
+                    args.alg_path,
                     "-i", str(yaml_file),
                     "-o", str(out_file),
-                    "-w", str(args.weight)
-                ])
+                ]
+                if os.path.basename(args.alg_path) == "ecbs":
+                    cmd.append("-w")
+                    cmd.append(str(args.weight))
+                current_proc = subprocess.Popen(cmd)
                 current_proc.wait(timeout=args.timeout)
             except subprocess.TimeoutExpired:
                 print(f"Timeout expired for {yaml_file}, skipping.")
