@@ -128,6 +128,12 @@ python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/gro
 ````
 python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/ground/$EX_PATH/analysis/ecbs --metric cost makespan --subdir_path schedules/ecbs
 ````
+
+#### Ex. 3 (plot all algorithms)
+````
+python3 tools/plot_all_alg_results.py examples/ground/$EX_PATH/analysis --metrics average_highLevelExpanded average_lowLevelExpanded average_runtime
+````
+
 ### Map Conversion
 
 ```

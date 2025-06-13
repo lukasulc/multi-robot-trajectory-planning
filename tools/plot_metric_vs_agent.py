@@ -36,7 +36,7 @@ def load_metrics(dir_path: Path, metrics: List[str], subdir_path: str) -> Dict[s
     }
 
     for scenario_dir in dir_path.iterdir():
-        if not scenario_dir.is_dir():
+        if not scenario_dir.is_dir() or scenario_dir.name.find("analysis") != -1:
             continue
         print(f"Reading directory: {scenario_dir.name}")
         scenario_type = extract_scenario_type(scenario_dir.name)

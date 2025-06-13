@@ -47,7 +47,7 @@ def main(args):
         if res_dir == "ecbs":
             res_dir = f"{os.path.basename(args.alg_path)}_w_{args.weight}"
         schedules_dir = subdir / "schedules" / res_dir
-        schedules_dir.mkdir(exist_ok=True)
+        schedules_dir.mkdir(exist_ok=True, parents=True)
         for yaml_file in to_process:
             if skip_current:
                 print(f"Skipping (user request): {yaml_file}")
