@@ -85,7 +85,7 @@ python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map
 python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/warehouse-20-40-10-2-1.map --scen_dir ../mapf-scen-even/scen-even/
 ````
 ````
-python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/warehouse-20-40-10-2-1 --n 10
+python3 tools/auto_run_mapf_on_dir.py --inputs_dir examples/ground/warehouse-20-40-10-2-1 --n 10
 ````
 
 #### Ex. 5 (longer time but more benchmark files)
@@ -100,7 +100,7 @@ python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map
 python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/$EX_PATH.map --scen_dir ../mapf-scen-even/scen-even/
 ````
 ````
-python3 tools/auto_run_ecbs_on_dir.py --inputs_dir examples/ground/$EX_PATH --n 10 --alg_path ./build/libMultiRobotPlanning/cbs
+python3 tools/auto_run_mapf_on_dir.py --inputs_dir examples/ground/$EX_PATH --n 10 --alg_path ./build/libMultiRobotPlanning/cbs
 ````
 
 ### Aggregate & Plot data
