@@ -91,6 +91,7 @@ python3 tools/auto_run_mapf_on_dir.py --inputs_dir examples/ground/warehouse-20-
 #### Ex. 5 (longer time but more benchmark files)
 ````
 EX_PATH=warehouse-20-40-10-2-1
+NUM_AGENTS=10
 ````
 
 ````
@@ -100,7 +101,11 @@ python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map
 python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/$EX_PATH.map --scen_dir ../mapf-scen-even/scen-even/
 ````
 ````
-python3 tools/auto_run_mapf_on_dir.py --inputs_dir examples/ground/$EX_PATH --n 10 --alg_path ./build/libMultiRobotPlanning/cbs
+python3 tools/auto_run_mapf_on_dir.py --inputs_dir examples/ground/$EX_PATH --n $NUM_AGENTS --alg_path ./build/libMultiRobotPlanning/cbs
+````
+
+````
+python3 libMultiRobotPlanning/example/visualize.py examples/ground/$EX_PATH/random-1/inputs_${NUM_AGENTS}_agents.yaml examples/ground/$EX_PATH/random-1/schedules/ecbs/ecbs_schedule_inputs_${NUM_AGENTS}_agents.yaml --video examples/ground/$EX_PATH/random-1/${NUM_AGENTS}_agents.mp4
 ````
 
 ### Aggregate & Plot data
@@ -131,7 +136,12 @@ python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/gro
 
 #### Ex. 3 (plot all algorithms)
 ````
-python3 tools/plot_all_alg_results.py examples/ground/$EX_PATH/analysis --metrics average_highLevelExpanded average_lowLevelExpanded average_runtime
+python3 tools/plot_all_alg_results.py examples/ground/$EX_PATH/analysis --metrics average_cost average_highLevelExpanded average_lowLevelExpanded average_runtime
+````
+
+#### Ex. 4 (plot all algorithms)
+````
+python3 tools/plot_all_alg_results.py examples/ground/$EX_PATH/analysis --metrics average_cost average_highLevelExpanded average_lowLevelExpanded average_runtime --algorithms cbs ecbs_w_1.10
 ````
 
 ### Map Conversion
