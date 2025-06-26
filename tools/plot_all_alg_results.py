@@ -44,16 +44,29 @@ def load_metrics(analysis_dir: Path, metrics: list, algorithms: list = None) -> 
                 data[metric][(algorithm, scenario_type)] = (agent_counts, metric_values[metric])
     return data
 
-def plot_metrics(data: dict, metrics: list, save_path: Path):
+def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
     n_metrics = len(metrics)
     ncols = min(n_metrics, 2)
     nrows = math.ceil(n_metrics / ncols)
     fig, axes = plt.subplots(nrows, ncols, figsize=(8 * ncols, 6 * nrows), squeeze=False)
     axes = axes.flatten()
+
+    tab10 = plt.get_cmap("tab20")
+    markers = ['s', 'D', '^', 'v', 'x', '*', 'o',]
+    linestyles = ['--', ':', '-.']
+
     for idx, metric in enumerate(metrics):
         ax = axes[idx]
-        for (algorithm, scenario_type), (x, y) in data[metric].items():
-            ax.plot(x, y, marker='o', label=f"{algorithm} - {scenario_type}")
+        for i, ((algorithm, scenario_type), (x, y)) in enumerate(data[metric].items()):
+            line_color = tab10(i % 10)
+            ax.plot(x, 
+                    y,
+                    ms=6 - (i),
+                    color=line_color,
+                    marker=markers[i % len(markers)], 
+                    linestyle=linestyles[(i // 2) % len(linestyles)],
+                    linewidth=2 + (i // 2),
+                    label=f"{algorithm} - {scenario_type}")
         ax.set_xlabel("Number of agents")
         unit = metric_units.get(metric, "")
         ylabel = f"{metric} [{unit}]" if unit else metric
@@ -64,6 +77,7 @@ def plot_metrics(data: dict, metrics: list, save_path: Path):
     # Hide unused subplots
     for i in range(len(metrics), len(axes)):
         fig.delaxes(axes[i])
+    plt.suptitle(plot_title, fontsize=20)  # <-- Add this line for subtitle
     plt.tight_layout()
     plt.savefig(save_path)
     print(f"Plot saved to {save_path}")
@@ -88,7 +102,7 @@ def main():
     else:
         save_file = f"all_{save_file}"
     save_path = analysis_dir / save_file
-    plot_metrics(data, metrics, save_path)
+    plot_metrics(data, metrics, save_path, f"Map: {analysis_dir.parent.name}")
 
 if __name__ == "__main__":
     main()
