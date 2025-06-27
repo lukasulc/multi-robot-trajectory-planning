@@ -95,8 +95,8 @@ def main(args: argparse.Namespace) -> None:
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot average MAPF metrics vs. number of agents for scenario types.")
     parser.add_argument("results_dir", help="Directory containing scenario subdirectories")
-    parser.add_argument("output_dir", type=str, help="Path to save the output plot (default: plot.png)")
-    parser.add_argument("--subdir_path", type=str, default="schedules", help="Path to subdirectory within results_dir (default: empty)")
+    parser.add_argument("output_dir", type=str, help="Path to save the output plot")
+    parser.add_argument("--subdir_path", type=str, default="schedules", help="Path to subdirectory within results_dir (default: schedules)")
     parser.add_argument("--metrics", nargs="+", default=["cost", "makespan"], help="Metrics to plot (default: cost makespan)")
     parser.add_argument("--save_results", type=bool, default=True, help="Save results to file (default: True)")
     return parser.parse_args()
