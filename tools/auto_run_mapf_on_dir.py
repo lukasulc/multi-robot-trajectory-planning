@@ -45,7 +45,7 @@ def main(args):
         to_process = yaml_files if args.n is None else yaml_files[:args.n]
         res_dir = os.path.basename(args.alg_path)
         if res_dir == "ecbs":
-            res_dir = f"{os.path.basename(args.alg_path)}_w_{args.weight}"
+            res_dir = f"{os.path.basename(args.alg_path)}_w_{args.weight:.2f}"
         schedules_dir = subdir / "schedules" / res_dir
         schedules_dir.mkdir(exist_ok=True, parents=True)
         for yaml_file in to_process:
