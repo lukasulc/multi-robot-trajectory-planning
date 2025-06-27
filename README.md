@@ -118,20 +118,15 @@ python3 tools/plot_metric_vs_agent.py ./examples/ground/warehouse-10-20-10-2-1/ 
 #### Ex. 2
 ````
 EX_PATH=warehouse-20-40-10-2-1
+EX_ALG=ecbs_1.05
 ````
 
 ````
-mkdir examples/ground/$EX_PATH/analysis
-mkdir examples/ground/$EX_PATH/analysis/cbs
-mkdir examples/ground/$EX_PATH/analysis/ecbs
+mkdir -p examples/ground/$EX_PATH/analysis/$EX_ALG
 ````
 
 ````
-python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/ground/$EX_PATH/analysis/cbs --metric cost makespan --subdir_path schedules/cbs
-````
-
-````
-python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/ground/$EX_PATH/analysis/ecbs --metric cost makespan --subdir_path schedules/ecbs
+python3 tools/plot_metric_vs_agent.py ./examples/ground/$EX_PATH/ ./examples/ground/$EX_PATH/analysis/$EX_ALG --metric cost makespan --subdir_path schedules/$EX_ALG
 ````
 
 #### Ex. 3 (plot all algorithms)
