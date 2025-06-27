@@ -75,7 +75,7 @@ def main(args: argparse.Namespace) -> None:
         ax = axes[idx]
         metric_data = avg_dict[metric]
         for scenario_type, agent_dict in metric_data.items():
-            x = sorted(agent_dict.keys())
+            x = sorted(agent_dict.keys())[:args.cutoff]
             y = [agent_dict[n] for n in x]
             ax.plot(x, y, marker='o', label=scenario_type)
         ax.set_xlabel("Number of agents")
@@ -99,6 +99,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--subdir_path", type=str, default="schedules", help="Path to subdirectory within results_dir (default: schedules)")
     parser.add_argument("--metrics", nargs="+", default=["cost", "makespan"], help="Metrics to plot (default: cost makespan)")
     parser.add_argument("--save_results", type=bool, default=True, help="Save results to file (default: True)")
+    parser.add_argument("--cutoff", type=int, default=30, help="Save results to file (default: 30)")
     return parser.parse_args()
 
 if __name__ == "__main__":
