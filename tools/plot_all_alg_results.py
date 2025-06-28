@@ -101,7 +101,7 @@ def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
                     color=line_color,
                     marker=markers[i % len(markers)], 
                     linestyle=linestyles[(i // 2) % len(linestyles)],
-                    linewidth=2 + (i // 2),
+                    linewidth=2 + (i // 2) * 0.25,
                     label=f"{algorithm} - {scenario_type}")
         ax.set_xlabel("Number of agents")
         unit = metric_units.get(metric, "")
