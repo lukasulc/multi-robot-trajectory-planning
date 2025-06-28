@@ -6,16 +6,25 @@ import threading
 import os
 
 skip_current = False
+skip_scenario = False
 current_proc = None
 
 def listen_for_skip():
-    global skip_current, current_proc
+    global skip_current, skip_scenario, current_proc
     print("Press 's' + Enter at any time to skip the current file.")
     while True:
         user_input = input()
-        if user_input.strip().lower() == 's':
+        if user_input.strip() == 's':
             print("Skip request received from keyboard. Attempting to terminate current process...")
             skip_current = True
+            if current_proc is not None:
+                try:
+                    current_proc.terminate()
+                except Exception as e:
+                    print(f"Failed to terminate process: {e}")
+        if user_input.strip() == 'S':
+            print("Skip request received from keyboard. Attempting to terminate current process...")
+            skip_scenario = True
             if current_proc is not None:
                 try:
                     current_proc.terminate()
@@ -35,7 +44,7 @@ def natural_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', str(s))]
 
 def main(args):
-    global skip_current, current_proc
+    global skip_current, skip_scenario, current_proc
     # Start the skip listener thread
     threading.Thread(target=listen_for_skip, daemon=True).start()
     for subdir in sorted([d for d in Path(args.inputs_dir).iterdir() if d.is_dir()], key=natural_key):
@@ -53,6 +62,10 @@ def main(args):
                 print(f"Skipping (user request): {yaml_file}")
                 skip_current = False
                 continue
+            if skip_scenario:
+                print(f"Skipping scenario (user request): {subdir}")
+                skip_scenario = False
+                break
             out_file = schedules_dir / f"{os.path.basename(args.alg_path)}_schedule_{yaml_file.name}"
             if out_file.exists():
                 print(f"Skipping (already exists): {out_file}")
@@ -79,6 +92,10 @@ def main(args):
                 if skip_current:
                     print(f"File skipped by user request: {yaml_file}")
                     skip_current = False
+                if skip_scenario:
+                    print(f"Scenario skipped by user request: {subdir}")
+                    skip_scenario = False
+                    break
 
 if __name__ == "__main__":
     main(get_args())
