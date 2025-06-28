@@ -3,6 +3,7 @@ import yaml
 import matplotlib.pyplot as plt
 from pathlib import Path
 import math
+import numpy as np
 
 # Define SI units for known metrics
 metric_units = {
@@ -21,7 +22,6 @@ def extract_scenario_type(filename: str) -> str:
     return "unknown"
 
 def load_metrics(analysis_dir: Path, metrics: list, algorithms: list = None) -> dict:
-    # {metric: {(algorithm, scenario_type): (x, y)}}
     data = {metric: {} for metric in metrics}
     for alg_dir in analysis_dir.iterdir():
         if not alg_dir.is_dir():
@@ -44,6 +44,39 @@ def load_metrics(analysis_dir: Path, metrics: list, algorithms: list = None) -> 
                 data[metric][(algorithm, scenario_type)] = (agent_counts, metric_values[metric])
     return data
 
+def plot_num_scenarios(ax, data: list, bar_color):
+    algorithms, scenarios = set(), set()
+
+    for (algorithm, scenario_type), (x, y) in data:
+        algorithms.add(algorithm)
+        scenarios.add(scenario_type)
+
+    algorithms = sorted(algorithms)
+    scenarios = sorted(scenarios)
+
+    n_algorithms = len(algorithms)
+    bar_range = np.arange(2) # even and random
+    bar_width = 0.8 / n_algorithms
+    print(f"Number of algorithms: {n_algorithms}, Bar width: {bar_width}")
+
+    for i, ((algorithm, scenario_type), (x, y)) in enumerate(data):
+        x_start = bar_range[i%2] - (bar_width * (n_algorithms-1) / 2) + bar_width * (i//2)
+        print(f"Plotting {algorithm} - {scenario_type} with {x_start, sum(y) / (30 * 25)} scenarios")
+        # - 0.2 + 0 or - 0.2 + 0.4
+        ax.bar(x_start,
+               sum(y) / (30 * 25) * 100,
+               label=f"{algorithm}",
+               width=bar_width-0.01,
+               color=bar_color(i % 10),
+               alpha=0.7)
+    ax.legend()
+    ax.set_xticks(bar_range)
+    ax.set_xticklabels(scenarios)
+    ax.set_ylabel('Success (%)')
+    ax.set_ylim(0, 100)
+    ax.set_title('num_scenarios [%]')
+    ax.grid(True, axis='y')
+
 def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
     n_metrics = len(metrics)
     ncols = min(n_metrics, 2)
@@ -57,6 +90,9 @@ def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
 
     for idx, metric in enumerate(metrics):
         ax = axes[idx]
+        if metric == "num_scenarios":
+            plot_num_scenarios(ax, data[metric].items(), tab10)
+            continue
         for i, ((algorithm, scenario_type), (x, y)) in enumerate(data[metric].items()):
             line_color = tab10(i % 10)
             ax.plot(x, 
@@ -77,7 +113,7 @@ def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
     # Hide unused subplots
     for i in range(len(metrics), len(axes)):
         fig.delaxes(axes[i])
-    plt.suptitle(plot_title, fontsize=20)  # <-- Add this line for subtitle
+    plt.suptitle(plot_title, fontsize=20)
     plt.tight_layout()
     plt.savefig(save_path)
     print(f"Plot saved to {save_path}")
