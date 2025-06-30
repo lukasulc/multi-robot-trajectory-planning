@@ -1,6 +1,7 @@
 import argparse
 import yaml
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 from pathlib import Path
 import math
 import numpy as np
@@ -56,24 +57,25 @@ def plot_num_scenarios(ax, data: list, bar_color):
 
     n_algorithms = len(algorithms)
     bar_range = np.arange(2) # even and random
-    bar_width = 0.8 / n_algorithms
+    bar_width = 0.6 / n_algorithms
     print(f"Number of algorithms: {n_algorithms}, Bar width: {bar_width}")
 
     for i, ((algorithm, scenario_type), (x, y)) in enumerate(data):
         x_start = bar_range[i%2] - (bar_width * (n_algorithms-1) / 2) + bar_width * (i//2)
         print(f"Plotting {algorithm} - {scenario_type} with {x_start, sum(y) / (30 * 25)} scenarios")
         # - 0.2 + 0 or - 0.2 + 0.4
-        ax.bar(x_start,
+        bar_container = ax.bar(x_start,
                sum(y) / (30 * 25) * 100,
                label=f"{algorithm}",
                width=bar_width-0.01,
                color=bar_color(i % 10),
                alpha=0.7)
+        ax.bar_label(bar_container, fmt="%.1f%%")
     ax.legend()
     ax.set_xticks(bar_range)
     ax.set_xticklabels(scenarios)
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     ax.set_ylabel('Success (%)')
-    ax.set_ylim(0, 100)
     ax.set_title('num_scenarios [%]')
     ax.grid(True, axis='y')
 
