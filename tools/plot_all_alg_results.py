@@ -76,7 +76,7 @@ def plot_num_scenarios(ax, data: list, bar_color):
     ax.set_xticklabels(scenarios)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     ax.set_ylabel('Success (%)')
-    ax.set_title('num_scenarios [%]')
+    ax.set_title('number of successfuly solved scenarios')
     ax.grid(True, axis='y')
 
 def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
