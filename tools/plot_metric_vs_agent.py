@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 from typing import Dict, List, Any, DefaultDict
 from calculate_averages import compute_averages, save_global_averages_by_scenario, count_fast_scenarios
+import numpy as np
 
 ALL_METRICS: List[str] = [
         'cost',
@@ -58,6 +59,31 @@ def load_metrics(dir_path: Path, metrics: List[str], subdir_path: str) -> Dict[s
                 print(f"Error reading {sched_file}: {e}")
     return data
 
+def format_polynomial_coef_to_string(coeffs: np.ndarray) -> str:
+    terms = []
+    for power, c in enumerate(coeffs):
+        if abs(c) < 1e-8:
+            continue
+        coeff_str = f"{c:.2g}"
+        if power == 0:
+            terms.append(f"{coeff_str}")
+        elif power == 1:
+            terms.append(f"{coeff_str}x")
+        else:
+            terms.append(f"{coeff_str}x^{power}")
+    terms.reverse()
+    eqn = " + ".join(terms)
+    return f"y = {eqn}"
+
+def fit_and_plot_polynomial(ax, x, y, degree=2, color=None):
+    if len(x) < degree + 1:
+        return  # Not enough points to fit
+    coeffs = np.polyfit(x, y, degree)
+    poly = np.poly1d(coeffs)
+    x_fit = np.linspace(min(x), max(x), 100)
+    y_fit = poly(x_fit)
+    ax.plot(x_fit, y_fit, '-.', label=format_polynomial_coef_to_string(coeffs), color=color)
+
 def main(args: argparse.Namespace) -> None:
     results_dir: Path = Path(args.results_dir)
     output_dir: Path = Path(args.output_dir)
@@ -73,13 +99,17 @@ def main(args: argparse.Namespace) -> None:
     n_metrics = len(metrics)
     fig, axes = plt.subplots(1, n_metrics, figsize=(8 * n_metrics, 6), squeeze=False)
 
+    color_map = plt.get_cmap("tab20")
+
     for idx, metric in enumerate(metrics):
         ax = axes[0][idx]
         metric_data = avg_dict[metric]
-        for scenario_type, agent_dict in metric_data.items():
+        for i, (scenario_type, agent_dict) in enumerate(metric_data.items()):
             x = sorted(agent_dict.keys())[:args.cutoff]
             y = [agent_dict[n] for n in x]
-            ax.plot(x, y, marker='o', label=scenario_type)
+            ax.plot(x, y, marker='o', label=f"{output_dir.name} - {scenario_type}", linestyle=':',)
+            if metric not in args.skip_fit_metrics:
+                fit_and_plot_polynomial(ax, x, y, degree=2, color=color_map(i*2 + 1))
         ax.set_xlabel("Number of agents")
         ax.set_ylabel(metric.capitalize())
         ax.set_title(f"Average {metric} vs. Number of agents")
@@ -87,6 +117,7 @@ def main(args: argparse.Namespace) -> None:
         ax.grid(True)
 
     plt.tight_layout()
+    plt.title(results_dir.name, fontsize=20)
     if args.save_results:
         plot_path = output_dir / f"{'_'.join(metrics)}_vs_agents.png"
         plt.savefig(plot_path)
@@ -100,6 +131,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("output_dir", type=str, help="Path to save the output plot")
     parser.add_argument("--subdir_path", type=str, default="schedules", help="Path to subdirectory within results_dir (default: schedules)")
     parser.add_argument("--metrics", nargs="+", default=["cost", "makespan"], help="Metrics to plot (default: cost makespan)")
+    parser.add_argument("--skip_fit_metrics", nargs="+", default=[], help="Metrics to skip fitting (default: None)")
     parser.add_argument("--save_results", type=bool, default=True, help="Save results to file (default: True)")
     parser.add_argument("--cutoff", type=int, default=30, help="Save results to file (default: 30)")
     return parser.parse_args()
