@@ -19,19 +19,15 @@ def compute_averages(
         for scenario_type, agent_dict in data[metric].items():
             avg_dict[metric][scenario_type] = {}
             all_values: List[float] = []
-            agent_counts_set: set[int] = set()
             num_scenarios_per_agent: Dict[int, int] = {}
             for agent_count, values in agent_dict.items():
                 if values:
                     avg = sum(values) / len(values)
                     avg_dict[metric][scenario_type][agent_count] = avg
                     all_values.extend(values)
-                    agent_counts_set.add(agent_count)
                     num_scenarios_per_agent[agent_count] = len(values)
             meta_dict[metric][scenario_type] = {
                 f"average_{metric}": sum(all_values) / len(all_values) if all_values else None,
-                "max_agent_count": max(agent_counts_set) if agent_counts_set else 0,
-                "num_agent_counts": len(agent_counts_set),
                 "num_scenarios_per_agent": num_scenarios_per_agent
             }
     return avg_dict, meta_dict
@@ -39,7 +35,8 @@ def compute_averages(
 def save_global_averages_by_scenario(
     avg_dict: Dict[str, Dict[str, Dict[int, float]]],
     meta_dict: Dict[str, Dict[str, Dict[str, Any]]],
-    results_dir: Any
+    results_dir: Any,
+    additional_metrics: Dict[str, Dict[str, Dict[int, int]]]
 ) -> None:
     for scenario_type in next(iter(avg_dict.values())).keys():
         out: Dict[int, Dict[str, Any]] = {}
@@ -49,6 +46,8 @@ def save_global_averages_by_scenario(
             agent_counts.update(avg_dict[metric][scenario_type].keys())
         for agent_count in sorted(agent_counts):
             out[agent_count] = {}
+            for additional_metric, metric_data in additional_metrics.items():
+                out[agent_count][additional_metric] = metric_data[scenario_type].get(agent_count, 0)
             for metric in avg_dict:
                 avg = avg_dict[metric][scenario_type].get(agent_count, None)
                 out[agent_count][f"average_{metric}"] = avg
@@ -59,3 +58,21 @@ def save_global_averages_by_scenario(
         with open(avg_path, "w") as f:
             yaml.dump(out, f)
         print(f"Global averages for scenario '{scenario_type}' saved to {avg_path}")
+
+def count_fast_scenarios(
+    data: Dict[str, Dict[str, Dict[int, List[float]]]],
+    threshold: float = 1.0
+) -> Dict[str, Dict[str, Dict[int, int]]]:
+    """
+    Returns:
+        fast_count: {metric: {scenario_type: {agent_count: count}}}
+    """
+    fast_count: Dict[str, Dict[str, Dict[int, int]]] = {}
+    metric = "runtime"
+    fast_count = {}
+    for scenario_type, agent_dict in data[metric].items():
+        fast_count[scenario_type] = {}
+        for agent_count, runtimes in agent_dict.items():
+            count = sum(1 for rt in runtimes if rt < threshold)
+            fast_count[scenario_type][agent_count] = count
+    return fast_count

@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from typing import Dict, List, Any, DefaultDict
-from calculate_averages import compute_averages, save_global_averages_by_scenario
+from calculate_averages import compute_averages, save_global_averages_by_scenario, count_fast_scenarios
 
 ALL_METRICS: List[str] = [
         'cost',
@@ -65,14 +65,16 @@ def main(args: argparse.Namespace) -> None:
     data = load_metrics(results_dir, ALL_METRICS, args.subdir_path)
 
     avg_dict, meta_dict = compute_averages(data, ALL_METRICS)
-    save_global_averages_by_scenario(avg_dict, meta_dict, output_dir)
+    additional_metrics = {}
+    additional_metrics['number_of_sub-1-second_scenarios'] = count_fast_scenarios(data, threshold=1.0)
+    additional_metrics['number_of_sub-10-second_scenarios'] = count_fast_scenarios(data, threshold=10.0)
+    save_global_averages_by_scenario(avg_dict, meta_dict, output_dir, additional_metrics)
 
     n_metrics = len(metrics)
     fig, axes = plt.subplots(1, n_metrics, figsize=(8 * n_metrics, 6), squeeze=False)
-    axes = axes[0]  # flatten to 1D
 
     for idx, metric in enumerate(metrics):
-        ax = axes[idx]
+        ax = axes[0][idx]
         metric_data = avg_dict[metric]
         for scenario_type, agent_dict in metric_data.items():
             x = sorted(agent_dict.keys())[:args.cutoff]
