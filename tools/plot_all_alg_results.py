@@ -86,17 +86,17 @@ def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
     fig, axes = plt.subplots(nrows, ncols, figsize=(8 * ncols, 6 * nrows), squeeze=False)
     axes = axes.flatten()
 
-    tab10 = plt.get_cmap("tab20")
+    color_map = plt.get_cmap("tab20")
     markers = ['s', 'D', '^', 'v', 'x', '*', 'o',]
     linestyles = ['--', ':', '-.']
 
     for idx, metric in enumerate(metrics):
         ax = axes[idx]
         if metric == "num_scenarios":
-            plot_num_scenarios(ax, data[metric].items(), tab10)
+            plot_num_scenarios(ax, data[metric].items(), color_map)
             continue
         for i, ((algorithm, scenario_type), (x, y)) in enumerate(data[metric].items()):
-            line_color = tab10(i % 10)
+            line_color = color_map(i % 10)
             ax.plot(x, 
                     y,
                     ms=6 - (i),
