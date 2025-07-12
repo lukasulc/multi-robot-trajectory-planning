@@ -5,6 +5,7 @@ import matplotlib.ticker as mtick
 from pathlib import Path
 import math
 import numpy as np
+import re
 
 # Define SI units for known metrics
 metric_units = {
@@ -23,14 +24,16 @@ def extract_scenario_type(filename: str) -> str:
     return "unknown"
 
 def load_metrics(analysis_dir: Path, metrics: list, algorithms: list = None) -> dict:
-    data = {metric: {} for metric in metrics}
+    data: Dict[str, Dict[str, Dict[int, float]]] = {metric: {} for metric in metrics}
     for alg_dir in analysis_dir.iterdir():
         if not alg_dir.is_dir():
+            print(f"Skipping {alg_dir} as it is not a directory.")
             continue
         algorithm = alg_dir.name
         if algorithms is not None and algorithm not in algorithms:
             continue
         for yaml_file in alg_dir.glob("*.yaml"):
+            print(f"Processing file: {yaml_file.name} for algorithm: {algorithm}")
             scenario_type = extract_scenario_type(yaml_file.name)
             with open(yaml_file, 'r') as f:
                 content = yaml.safe_load(f)
@@ -79,7 +82,7 @@ def plot_num_scenarios(ax, data: list, bar_color):
     ax.set_title('number of successfuly solved scenarios')
     ax.grid(True, axis='y')
 
-def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
+def plot_metrics(data: dict, metrics: list[str], save_path: Path, plot_title: str):
     n_metrics = len(metrics)
     ncols = min(n_metrics, 2)
     nrows = math.ceil(n_metrics / ncols)
@@ -105,11 +108,14 @@ def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
                     linestyle=linestyles[(i // 2) % len(linestyles)],
                     linewidth=2 + (i // 2) * 0.25,
                     label=f"{algorithm} - {scenario_type}")
-        ax.set_xlabel("Number of agents")
+        x_label = "Number of agents"
+        ax.set_xlabel(x_label)
         unit = metric_units.get(metric, "")
-        ylabel = f"{metric} [{unit}]" if unit else metric
+        y_label = ' '.join(metric.capitalize().split('_'))
+        print(f"Plotting metric: {metric} with label: {y_label} and unit: {unit}")
+        ylabel = f"{y_label} [{unit}]" if unit else y_label
         ax.set_ylabel(ylabel)
-        ax.set_title(f"{metric}")
+        ax.set_title(f"{y_label} vs {x_label}")
         ax.legend()
         ax.grid(True)
     # Hide unused subplots
@@ -117,10 +123,15 @@ def plot_metrics(data: dict, metrics: list, save_path: Path, plot_title: str):
         fig.delaxes(axes[i])
     plt.suptitle(plot_title, fontsize=20)
     plt.tight_layout()
+    save_path.replace
     plt.savefig(save_path)
     print(f"Plot saved to {save_path}")
     plt.show()
     plt.close(fig)
+
+def sanitize_filename(name: str) -> str:
+    # Replace any character that is not alphanumeric, dash, or underscore with underscore
+    return re.sub(r'[^A-Za-z0-9_\-]', '_', name)
 
 def main():
     parser = argparse.ArgumentParser(description="Plot metrics from YAML files in the analysis directory.")
@@ -134,7 +145,7 @@ def main():
     algorithms = args.algorithms
 
     data = load_metrics(analysis_dir, metrics, algorithms)
-    save_file = f"{'_'.join(metrics)}_cross_alg_metrics.png"
+    save_file = sanitize_filename(f"{'_'.join(metrics)}")
     if algorithms is not None:
         save_file = f"{'_'.join(algorithms)}_{save_file}"
     else:

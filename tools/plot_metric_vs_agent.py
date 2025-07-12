@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 from typing import Dict, List, Any, DefaultDict
 from calculate_averages import compute_averages, save_global_averages_by_scenario, count_fast_scenarios
+from plot_all_alg_results import load_metrics
 import numpy as np
 
 ALL_METRICS: List[str] = [
@@ -15,6 +16,19 @@ ALL_METRICS: List[str] = [
         'highLevelExpanded',
         'lowLevelExpanded',
     ]
+
+metric_units = {
+    "cost": "steps",
+    "makespan": "steps",
+    "runtime": "s",
+    "highLevelExpanded": "nodes",
+    "lowLevelExpanded": "nodes",
+}
+
+metric_fitting_degree = {
+    "cost": 2,
+    "makespan": 2,
+}
 
 def extract_agent_count(filename: str) -> int | None:
     # Assumes filename like schedule_inputs_10_agents.yaml
@@ -30,7 +44,7 @@ def read_first_n_lines(file_path: Path, n: int = 6) -> str:
         lines = [next(f) for _ in range(n)]
     return "".join(lines)
 
-def load_metrics(dir_path: Path, metrics: List[str], subdir_path: str) -> Dict[str, DefaultDict[str, DefaultDict[int, List[float]]]]:
+def traverse_subdirs_and_load_metrics(dir_path: Path, metrics: List[str], subdir_path: str) -> Dict[str, DefaultDict[str, DefaultDict[int, List[float]]]]:
     # {scenario_type: {agent_count: [metric_values]}}
     data: Dict[str, DefaultDict[str, DefaultDict[int, List[float]]]] = {
         metric: defaultdict(lambda: defaultdict(list)) for metric in metrics
@@ -59,20 +73,23 @@ def load_metrics(dir_path: Path, metrics: List[str], subdir_path: str) -> Dict[s
                 print(f"Error reading {sched_file}: {e}")
     return data
 
-def format_polynomial_coef_to_string(coeffs: np.ndarray) -> str:
+def format_polynomial_coef_to_string(coeffs: np.ndarray, degree) -> str:
     terms = []
-    for power, c in enumerate(coeffs):
-        if abs(c) < 1e-8:
+    for i, c in enumerate(coeffs):
+        power = degree - i
+        if abs(c) < 1e-4:
             continue
-        coeff_str = f"{c:.2g}"
+        coeff_str = f"{abs(c):.3g}"
+        sign = "-" if c < 0 else "+"
+        if not terms:
+            sign = "-" if c < 0 else ""
         if power == 0:
-            terms.append(f"{coeff_str}")
+            terms.append(f"{sign} {coeff_str}")
         elif power == 1:
-            terms.append(f"{coeff_str}x")
+            terms.append(f"{sign} {coeff_str}x")
         else:
-            terms.append(f"{coeff_str}x^{power}")
-    terms.reverse()
-    eqn = " + ".join(terms)
+            terms.append(f"{sign} {coeff_str}x^{power}")
+    eqn = " ".join(terms)
     return f"y = {eqn}"
 
 def fit_and_plot_polynomial(ax, x, y, degree=2, color=None):
@@ -82,20 +99,14 @@ def fit_and_plot_polynomial(ax, x, y, degree=2, color=None):
     poly = np.poly1d(coeffs)
     x_fit = np.linspace(min(x), max(x), 100)
     y_fit = poly(x_fit)
-    ax.plot(x_fit, y_fit, '-.', label=format_polynomial_coef_to_string(coeffs), color=color)
+    ax.plot(x_fit, y_fit, '-.', label=format_polynomial_coef_to_string(coeffs, degree=degree), color=color)
 
-def main(args: argparse.Namespace) -> None:
-    results_dir: Path = Path(args.results_dir)
-    output_dir: Path = Path(args.output_dir)
-    metrics: List[str] = args.metrics
-    data = load_metrics(results_dir, ALL_METRICS, args.subdir_path)
-
-    avg_dict, meta_dict = compute_averages(data, ALL_METRICS)
-    additional_metrics = {}
-    additional_metrics['number_of_sub-1-second_scenarios'] = count_fast_scenarios(data, threshold=1.0)
-    additional_metrics['number_of_sub-10-second_scenarios'] = count_fast_scenarios(data, threshold=10.0)
-    save_global_averages_by_scenario(avg_dict, meta_dict, output_dir, additional_metrics)
-
+def plot_metric_vs_agents(
+    avg_dict: Dict[str, Dict[str, Dict[int, float]]],
+    output_dir: Path,
+    metrics: List[str],
+    args: argparse.Namespace
+):
     n_metrics = len(metrics)
     fig, axes = plt.subplots(1, n_metrics, figsize=(8 * n_metrics, 6), squeeze=False)
 
@@ -108,22 +119,41 @@ def main(args: argparse.Namespace) -> None:
             x = sorted(agent_dict.keys())[:args.cutoff]
             y = [agent_dict[n] for n in x]
             ax.plot(x, y, marker='o', label=f"{output_dir.name} - {scenario_type}", linestyle=':',)
-            if metric not in args.skip_fit_metrics:
-                fit_and_plot_polynomial(ax, x, y, degree=2, color=color_map(i*2 + 1))
+            degree = metric_fitting_degree[metric]
+            if metric not in args.skip_fit_metrics and degree:
+                fit_and_plot_polynomial(ax, x, y, degree=degree, color=color_map(i*2 + 1))
         ax.set_xlabel("Number of agents")
-        ax.set_ylabel(metric.capitalize())
+        unit = metric_units.get(metric, "")
+        ax.set_ylabel(f"{metric.capitalize()} [{unit}]" if unit else metric)
         ax.set_title(f"Average {metric} vs. Number of agents")
         ax.legend()
         ax.grid(True)
 
     plt.tight_layout()
-    plt.title(results_dir.name, fontsize=20)
     if args.save_results:
         plot_path = output_dir / f"{'_'.join(metrics)}_vs_agents.png"
         plt.savefig(plot_path)
         print(f"Plot saved to {plot_path}")
         return
     plt.show()
+
+def main(args: argparse.Namespace) -> None:
+    results_dir: Path = Path(args.results_dir)
+    output_dir: Path = Path(args.output_dir)
+    metrics: List[str] = args.metrics
+    if args.run_compute:
+        data = traverse_subdirs_and_load_metrics(results_dir, ALL_METRICS, args.subdir_path)
+
+        avg_dict, meta_dict = compute_averages(data, ALL_METRICS)
+        additional_metrics = {}
+        additional_metrics['solutions_computed_<1_second'] = count_fast_scenarios(data, threshold=1.0)
+        additional_metrics['solutions_computed_<10_seconds'] = count_fast_scenarios(data, threshold=10.0)
+        save_global_averages_by_scenario(avg_dict, meta_dict, output_dir, additional_metrics)
+        plot_metric_vs_agents(avg_dict, output_dir, metrics, args)
+    else:
+        avg_dict = load_metrics(output_dir.parent, metrics, algorithms=[output_dir.name], special_format=True)
+        plot_metric_vs_agents(avg_dict, output_dir, metrics, args)
+
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Plot average MAPF metrics vs. number of agents for scenario types.")
@@ -134,6 +164,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--skip_fit_metrics", nargs="+", default=[], help="Metrics to skip fitting (default: None)")
     parser.add_argument("--save_results", type=bool, default=True, help="Save results to file (default: True)")
     parser.add_argument("--cutoff", type=int, default=30, help="Save results to file (default: 30)")
+    parser.add_argument("--run_compute", type=bool, default=True, action=argparse.BooleanOptionalAction, help="Calculate averages or load already calculated (default: True)")
     return parser.parse_args()
 
 if __name__ == "__main__":
