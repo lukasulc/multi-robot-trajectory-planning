@@ -77,6 +77,17 @@ python3 libMultiRobotPlanning/example/visualize.py examples/ground/multi/test_Be
 python3 libMultiRobotPlanning/example/visualize.py examples/ground/warehouse-10-20-10-2-1/random-1_100_agents.yaml examples/ground/warehouse-10-20-10-2-1/output/random-1_100_agents.yaml --video examples/ground/warehouse-10-20-10-2-1/100_agents.mp4
 ````
 
+#### Ex. 3.1
+````
+EX_PATH=warehouse-20-40-10-2-1
+````
+````
+./build/libMultiRobotPlanning/ecbs -i examples/ground/$EX_PATH/random-1/inputs_100_agents.yaml -o examples/ground/$EX_PATH/random-1/schedules/$EX_ALG/${EX_ALG}_schedule_inputs_100_agents.yaml -w 1.1
+````
+````
+python3 libMultiRobotPlanning/example/visualize.py examples/ground/$EX_PATH/random-1/inputs_100_agents.yaml examples/ground/$EX_PATH/random-1/schedules/$EX_ALG/${EX_ALG}_schedule_inputs_100_agents.yaml --video examples/ground/$EX_PATH/100_agents.mp4 --speed 10
+````
+
 #### Ex. 4 (longer time but more benchmark files)
 ````
 python3 libMultiRobotPlanning/tools/auto_convert_benchmarks.py --map ../mapf-map/warehouse-20-40-10-2-1.map --scen_dir ../mapf-scen-random/scen-random/
